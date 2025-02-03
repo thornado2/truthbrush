@@ -8,6 +8,7 @@ import json
 import logging
 import os
 from dotenv import load_dotenv
+from urllib.parse import urlencode
 
 load_dotenv()  # take environment variables from .env.
 
@@ -95,11 +96,22 @@ class Api:
             else:
                 sleep(10)
 
+    def format_get_url(self, base_url, params):
+        query_string = urlencode(params)
+        return f"{base_url}?{query_string}" if query_string else base_url
+
     def _get(self, url: str, params: dict = None) -> Any:
         try:
+            req_url = API_BASE_URL + url
+            
+            truth_url = self.format_get_url(req_url, params)
+
             resp = self._make_session().get(
-                API_BASE_URL + url,
-                params=params,
+                "https://app.scrapingbee.com/api/v1",
+                params={
+                    'api_key': os.getenv("SCRAPING_BEE_APIKEY"),
+                    'url': truth_url,
+                },
                 proxies=proxies,
                 impersonate="chrome123",
                 headers={
@@ -109,7 +121,13 @@ class Api:
             )
         except curl_cffi.curl.CurlError as e:
             logger.error(f"Curl error: {e}")
+        except requests.RequestsError as e:
+            logger.error(f"HTTP request failed: {e}")
+            return None
 
+        if not resp:
+            return None
+        
         # Will also sleep
         self._check_ratelimit(resp)
 
