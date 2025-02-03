@@ -7,7 +7,6 @@ from curl_cffi import requests
 import json
 import logging
 import os
-import requests
 from dotenv import load_dotenv
 from urllib.parse import urlencode
 
@@ -481,7 +480,6 @@ class Api:
                 headers={
                     "User-Agent": USER_AGENT,
                 },
-                verify=False
             )
             sess_req.raise_for_status()
         except requests.RequestsError as e:
