@@ -481,6 +481,7 @@ class Api:
                 headers={
                     "User-Agent": USER_AGENT,
                 },
+                verify=False
             )
             sess_req.raise_for_status()
         except requests.RequestsError as e:
