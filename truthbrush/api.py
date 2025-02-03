@@ -472,28 +472,23 @@ class Api:
                 "scope": "read",
             }
 
-            response = requests.post(
-                url="https://app.scrapingbee.com/api/v1",
-                params={
-                    "url": url,
-                    "api_key": os.getenv("SCRAPING_BEE_APIKEY"),
-                },
+            sess_req = requests.request(
+                "POST",
+                url,
+                json=payload,
+                proxies=proxies,
+                impersonate="chrome123",
                 headers={
-                    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
                     "User-Agent": USER_AGENT,
                 },
-                data=payload,
             )
-
-            response.raise_for_status() 
-
-            json_data = response.json()
-            if "access_token" not in json_data:
-                raise ValueError("Invalid truthsocial.com credentials provided!")
-
-            return json_data["access_token"]
-        
-        except requests.exceptions.RequestException as e:
+            sess_req.raise_for_status()
+        except requests.RequestsError as e:
             logger.error(f"Failed login request: {str(e)}")
             raise SystemExit('Cannot authenticate to .')
+
+        if not sess_req.json()["access_token"]:
+            raise ValueError("Invalid truthsocial.com credentials provided!")
+
+        return sess_req.json()["access_token"]
 
